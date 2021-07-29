@@ -1,15 +1,17 @@
-
+import sys
+sys.setrecursionlimit(10**6)
 def sumaa(a,b,c,num1):
 
     num1=num1+int(int(a)/int(c))
-    print(int(a) % int(c)+(int(b) * int(int(a) / int(c))))
-    print(num1)
-
-    if int(int(a)/int(c))>0:
+    #print(a)
+    if int(int(a)/int(c)) > 0:
         sumaa((int(a) % int(c) + (int(b) * int(int(a) / int(c)))), b, c, num1)
-
-    else:
+    elif int(a) + int(b) >= int(c):
         num1=num1+1
+        #print('check')
+        sumaa(int(a)-int(c)+int(b), b, c, num1)
+    else:
+        num1 = num1+1
         print(num1)
 
 if __name__ == '__main__':
