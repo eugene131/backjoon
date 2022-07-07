@@ -1,0 +1,228 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<math.h>
+#define MALLOC(p,s)\
+if (!((p) = malloc(s))){\
+	printf("error");\
+	fprintf(stderr, "Insufficient memory");\
+	exit(EXIT_FAILURE);\
+}
+typedef struct polyNode* polyPointer;
+typedef struct polyNode {
+    int coef;
+    int expo;
+    polyPointer link;
+}PolyNode;
+polyPointer a, b;
+void printList(polyPointer a);
+void find(polyPointer a, int m); //insert의 위치 찾기(insert와 통합 가능)
+
+void insert(polyPointer* a, int m, int n); // 새로운 값을 다항식에 입력
+
+void mergeList(polyPointer* a, polyPointer* b); // 두 다항식을 합침(a에 b를)
+
+//void reverseList(polyPointer* a); // 다항식을 역순정렬
+
+void subt(polyPointer a, int var); // 다항식에 상수 대입
+void mergeList(polyPointer* a, polyPointer* b);
+int main(void)
+{
+    int ac, ae, bc, be; //ac: a 계수, ae: a 차수, bc: b 계수, be: b 차수
+    ac = ae = bc = be = 1;
+    int var; //var: 변수 X의 값
+
+    printf("A의 다항식 계수와 지수를 입력하시오. (0 0 종료)\n");
+    while (!(ac == 0 && ae == 0)) //0 0 입력할 시 종료
+    {
+        scanf("%d %d", &ac, &ae);
+        //find(a, ae);
+        insert(&a, ac, ae);
+    }
+
+    printf("B의 다항식 계수와 지수를 입력하시오. (0 0 종료)\n");
+    while (!(bc == 0 && be == 0)) //0 0 입력할시 종료
+    {
+        scanf("%d %d", &bc, &be);
+       // find(b, be);
+        insert(&b, bc, be); //입력받은 bc, be의 값을 다항식 b에 정렬하는 과정
+    }
+
+    printf("입력한 다항식을 확인합니다.\n");
+    printf("A : "); printList(a); //printpol:다항식 출력
+    printf("B : "); printList(b);
+
+    printf("다항식 A와 B를 합합니다.\n");
+    mergeList(&a, &b); //다항식 a에 다항식 b를 더하는 방식(a에 저장)
+ //   reverseList(&a); //리스트 역순 정렬
+    printf("A + B : "); printList(a); //b를 더한 a를 출력
+
+    printf("X의 숫자를 입력하시오.\n");
+    scanf("%d", &var); //대입 상수 입력받음
+    subt(a, var); //다항식 a에 대입 상수 var을 대입, 출력
+
+    return 0;
+}
+void mergeList(polyPointer* a, polyPointer* b) {
+
+    polyPointer beforea, tempa, tempb;
+    tempa = *a;//a리스트에 접근하기 위함
+    tempb = *b;//b리스트에 접근하기 위함
+    beforea = *a;//tempb를 a에 연결하기 위해 앞에 순서 접근
+    int i = 0;//beforea를 tempa보다 하나 늦추기 위한 i
+    while (tempa != NULL) {
+        if (tempb != NULL&&(tempa)->expo > (tempb)->expo) {//a의 차수가 큰 경우
+            tempa = (tempa)->link;
+            i++;
+            if (i != 0) {//beforea를 tempa보다 하나 늦추기 위한 i
+                beforea = beforea->link;
+            }
+        }
+        else if ((tempa)->expo < (tempb)->expo) {//b의 차수가 큰 경우
+            polyPointer tempb2;//tempb를 넣으면 b의 다음 순서에 접근이 불가하기 때문에 똑같은 tempb2를 생성
+            MALLOC(tempb2, sizeof(*tempb2));
+            tempb2->coef = (tempb)->coef;
+            tempb2->expo = (tempb)->expo;
+            tempb2->link = (tempa);//a의 사이에
+            beforea->link = tempb2;//tempb2를추가
+            if (i != 0) {//beforea를 tempa보다 하나 늦추기 위한 i
+                beforea = beforea->link;//하나가 더 가야(tempb2로 가는 것) 다음 순서에 그 다음 a에 접근이 가능
+            }
+            (tempb) = (tempb)->link;
+        }
+        else {//차수가 같은 경우
+            tempa->coef = tempa->coef + tempb->coef;
+
+            tempa = tempa->link;
+            if (i != 0) {//beforea를 tempa보다 하나 늦추기 위한 i
+                beforea = beforea->link;
+            }
+            i++;
+            tempb = tempb->link;
+        }
+    }
+}void printList(polyPointer a) {
+    for (; a; a = a->link) {
+        printf("%dx^%d ", a->coef, a->expo);
+    }
+    printf("\n");
+}
+
+//void subt(polyPointer a, int var) {
+//    double num = (double)var;
+//    double sum = 0;
+//
+//    for (; a; a = a->link) {
+//        sum += (double)(a->coef) * pow(num, (double)a->expo);
+//    }
+//    printf("%d", (int)sum);
+//}
+void subt(polyPointer first, int var)
+{
+    polyPointer node = first;
+    double sum = 0;
+
+    while (node) {
+        node = node->link;
+        if (node->link == NULL) {
+            printf("%d*%d^%d\n", node->coef, var, node->expo);
+            sum += node->coef * pow(var, node->expo);
+            break;
+        }
+        printf("%d*%d^%d + ", node->coef, var, node->expo);
+        sum += node->coef * pow(var, node->expo);
+    }
+
+    printf("%.0lf\n", sum);
+}
+void insert(polyPointer* a, int m, int n)
+{
+    polyPointer temp, newNode;
+    MALLOC(temp, sizeof(*temp));
+    MALLOC(newNode, sizeof(*newNode));
+    temp = *a;
+    newNode->coef = m;
+    newNode->expo = n;
+    newNode->link = NULL;
+    if (*a) {
+        for (;;) {
+            if (temp->link == NULL)
+                break;
+            temp = temp->link;
+        }
+
+        temp->link = newNode;
+    }
+    else {
+        newNode->link = NULL;
+        *a = newNode;
+    }
+}
+//void insert(polyPointer* pptt, int m, int n)
+//{
+//    if (!(*pptt))//a,b가 NULL일때(아무 값도 없을 때)
+//    {
+//        polyPointer newnode = (polyPointer)malloc(sizeof(PolyNode));
+//        if (!newnode)//malloc 예외처리문
+//        {
+//            printf("malloc error\n");
+//            exit(1);
+//        }
+//        newnode->coef = m;
+//        newnode->expo = n;
+//        newnode->link = NULL;
+//        *pptt = newnode;
+//        return;
+//    }
+//    //else
+//    polyPointer cur = *pptt;
+//    int def;//상황 구분용 int
+//    for (; cur->link && cur; cur = cur->link)//탐색 for문
+//    {
+//        if (cur->expo == n)
+//        {
+//            def = 0;//expon이 같은 값이 있음, 기존 노드에 값만 더하기
+//            break;
+//        }
+//        else if (cur->expo > n && cur->link->expo < n)//앞 지수보다 작지만 뒷 지수보다 클 때
+//        {
+//            def = 1;//연결리스트 가운데에 새로 넣어줘야함
+//            break;
+//        }
+//    }
+//    if (cur->expo == n)//위 for문에서 마지막 값은 찾을수가 없음, cur가 마지막 노드까지 갔을 때 검사해주는 if문
+//    {
+//        def = 0;//expon이 같은 값이 있음, 기존 노드에 값만 더하기
+//    }
+//    else
+//    {
+//        def = 2;//마지막 노드에 연결해야 함
+//    }
+//    //find 끝
+//    //
+//    if (def)//상황별로, def가 0이 아닐때 : 새로운 노드를 만들어줘야 한다!
+//    {
+//        polyPointer newnode = (polyPointer)malloc(sizeof(PolyNode));
+//        if (!newnode)//malloc 예외처리문
+//        {
+//            printf("malloc error\n");
+//            exit(1);
+//        }
+//        newnode->coef = m;//값 넣어주기
+//        newnode->expo = n;
+//        if (def == 1)//연결리스트 가운데에 새로 넣어줘야함
+//        {
+//            newnode->link = cur->link;
+//            cur->link = newnode;
+//        }
+//        else//if(def == 2), 마지막 노드 뒤에 연결해야 함
+//        {
+//            newnode->link = NULL;
+//            cur->link = newnode;
+//        }
+//    }
+//    else//def가 0일 때, 값만 더해주면 된다
+//    {
+//        cur->coef += m;
+//    }
+//}
