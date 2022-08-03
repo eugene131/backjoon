@@ -15,8 +15,4 @@ for i in range(1,col_num+1):
             dp[i][j]=min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1])+1        
             if ans<dp[i][j]:
                 ans=dp[i][j]
-for i in range(0,col_num+1):
-    for j in range(0,row_num+1):
-        print(dp[i][j],end=" ")
-    print()
 print(str(ans**2))
